@@ -4,6 +4,7 @@ import os
 import re
 import requests
 from typing import Any
+from newspaper import Article
 
 load_dotenv()
 
@@ -52,6 +53,7 @@ def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09") -> Any
 
         return result
     
+# TODO: Make Web Scraper
 
 if __name__ == "__main__":
     print(get_cached_news_metadata(page=2))
