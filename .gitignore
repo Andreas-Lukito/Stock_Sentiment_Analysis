@@ -4,4 +4,4 @@
 /.vscode/
 .env
 /news_cache/*
-api_tokens
+api_tokens.txt
