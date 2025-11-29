@@ -44,6 +44,7 @@ def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09", path :
                 "api_token": api_token,
                 "published_before": before_date,
                 "page": page,
+                "sentiment_lte": 1,
                 "language": "en"
             }
         )
