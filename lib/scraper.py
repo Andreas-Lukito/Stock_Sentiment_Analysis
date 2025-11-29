@@ -1,3 +1,4 @@
+from genericpath import exists
 from dotenv import load_dotenv
 import json
 import os
@@ -10,7 +11,18 @@ load_dotenv()
 
 api_token = os.getenv("API_TOKEN")
 
-def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09") -> Any:
+def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09", path : str = ".") -> Any:
+    """
+    This function is to fetch news metadata before the `before_date` with caching
+    
+    :param:
+        page (int): the number of news articles you want to scrape
+
+        before_date (str): The articles you want to get before `before_date`
+
+        path (str): Your path location
+    """
+
     if not api_token:
         raise RuntimeError("API key not found")
 
@@ -21,7 +33,7 @@ def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09") -> Any
         raise ValueError("Date must be of format Y-m")
     
     try:
-        with open(f"./news_cache/{before_date}/page-{page}.json", "r") as cache:
+        with open(os.path.join(path, f"news_cache/{before_date}/page-{page}.json"), "r") as cache:
             content =  cache.read()
             return json.loads(content)
         
@@ -41,19 +53,17 @@ def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09") -> Any
         if res.status_code != 200:
             raise ConnectionRefusedError("Return status not OK")
 
-        if not os.path.exists(f"./news_cache/{before_date}/"):
-            os.mkdir(f"./news_cache/{before_date}/")
+        # Make sure the directory exists
+        os.makedirs(os.path.join(path, f"news_cache/{before_date}/"), exist_ok = True)
 
         try:
-            with open(f"./news_cache/{before_date}/page-{page}.json", "w") as new_cache:
+            with open(os.path.join(path, f"news_cache/{before_date}/page-{page}.json"), "w") as new_cache:
                 new_cache.write(json.dumps(result))
         
         except:
             print("Error when writing cache!")
 
         return result
-    
-# TODO: Make Web Scraper
 
 if __name__ == "__main__":
     print(get_cached_news_metadata(page=2))
