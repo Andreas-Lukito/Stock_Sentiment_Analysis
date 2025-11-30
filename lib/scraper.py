@@ -67,15 +67,25 @@ def get_cached_news_metadata(page:int = 1, before_date:str = "2025-09", path:str
 
         return result
 
-def extract_text_from_url(url:str) -> str:
+scraper = cloudscraper.create_scraper()
+
+def extract_text_from_url(url:str, scraper: cloudscraper.CloudScraper = scraper) -> str:
     """
     This function is to extract the text from url utilizing newspaper3k and cloudscraper to bypass cloudflare
     """
 
-    article = Article(url)
-    article.download()
-    article.parse()
-    return article.text
+    try:
+        # get html using cloudscraper
+        html = scraper.get(url).text
+
+        article = Article(url)
+        article.set_html(html)
+        article.parse()
+        return article.text
+    
+    except Exception as e:
+        print(f"failed to extract from: {url}\n Error:{e}")
+        return "huhuhu"
 
 if __name__ == "__main__":
     print(get_cached_news_metadata(page=2))
