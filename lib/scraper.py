@@ -6,6 +6,7 @@ import re
 import requests
 from typing import Any
 from newspaper import Article
+import cloudscraper
 
 load_dotenv()
 
@@ -65,6 +66,16 @@ def get_cached_news_metadata(page:int = 1, before_date:str = "2025-09", path:str
             print("Error when writing cache!")
 
         return result
+
+def extract_text_from_url(url:str) -> str:
+    """
+    This function is to extract the text from url utilizing newspaper3k and cloudscraper to bypass cloudflare
+    """
+
+    article = Article(url)
+    article.download()
+    article.parse()
+    return article.text
 
 if __name__ == "__main__":
     print(get_cached_news_metadata(page=2))
