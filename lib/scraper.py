@@ -12,7 +12,7 @@ load_dotenv()
 
 api_token = os.getenv("API_TOKEN")
 
-def get_cached_news_metadata(page:int = 1, before_date:str = "2025-09", path:str = ".") -> Any:
+def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09", path: str = ".") -> Any:
     """
     This function is to fetch news metadata before the `before_date` with caching
     
@@ -69,7 +69,7 @@ def get_cached_news_metadata(page:int = 1, before_date:str = "2025-09", path:str
 
 scraper = cloudscraper.create_scraper()
 
-def extract_text_from_url(url:str, scraper: cloudscraper.CloudScraper = scraper) -> str:
+def extract_text_from_url(url: str, scraper: cloudscraper.CloudScraper = scraper) -> str:
     """
     This function is to extract the text from url utilizing newspaper3k and cloudscraper to bypass cloudflare
     """
@@ -84,8 +84,7 @@ def extract_text_from_url(url:str, scraper: cloudscraper.CloudScraper = scraper)
         return article.text
     
     except Exception as e:
-        print(f"failed to extract from: {url}\n Error:{e}")
-        return "huhuhu"
+        raise Exception(f"Failed to extract from: {url}\n Error:{e}")
 
 if __name__ == "__main__":
     print(get_cached_news_metadata(page=2))
