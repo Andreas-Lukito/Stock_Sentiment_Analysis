@@ -60,6 +60,8 @@ def clean_text(text: str, tokenize: bool = False, remove_stop_words: bool = Fals
         return re.sub(r'https?://\S+|www\.\S+', '', text)
 
     # Clean process
+    text = str(text)
+
     text = contractions.fix(text)                        # fixing contraction
 
     text = text.strip().lower()                          # lowercase + trim
