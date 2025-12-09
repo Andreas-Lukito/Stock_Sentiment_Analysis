@@ -5,3 +5,4 @@
 .env
 /news_cache/*
 api_tokens.txt
+/models/
