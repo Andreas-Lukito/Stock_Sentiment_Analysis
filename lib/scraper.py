@@ -17,7 +17,7 @@ def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09", path: 
     This function is to fetch news metadata before the `before_date` with caching
     
     :param:
-        page (int): the number of news articles you want to scrape
+        page (int): the page of the news article you want to scrape
 
         before_date (str): The articles you want to get before `before_date`
 
