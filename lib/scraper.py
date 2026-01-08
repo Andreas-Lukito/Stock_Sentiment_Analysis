@@ -12,7 +12,7 @@ load_dotenv()
 
 api_token = os.getenv("API_TOKEN")
 
-def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09", path: str = ".") -> Any:
+def get_cached_news_metadata_before_date(page: int = 1, before_date: str = "2025-09", path: str = ".") -> Any:
     """
     This function is to fetch news metadata before the `before_date` with caching
     
@@ -34,7 +34,7 @@ def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09", path: 
         raise ValueError("Date must be of format Y-m")
     
     try:
-        with open(os.path.join(path, f"news_cache/{before_date}/json/page-{page}.json"), "r") as cache:
+        with open(os.path.join(path, f"news_cache/before_date/{before_date}/json/page-{page}.json"), "r") as cache:
             content =  cache.read()
             return json.loads(content)
         
@@ -56,10 +56,65 @@ def get_cached_news_metadata(page: int = 1, before_date: str = "2025-09", path: 
             raise ConnectionRefusedError("Return status not OK")
 
         # Make sure the directory exists
-        os.makedirs(os.path.join(path, f"news_cache/{before_date}/json/"), exist_ok = True)
+        os.makedirs(os.path.join(path, f"news_cache/before_date/{before_date}/json/"), exist_ok = True)
 
         try:
-            with open(os.path.join(path, f"news_cache/{before_date}/json/page-{page}.json"), "w") as new_cache:
+            with open(os.path.join(path, f"news_cache/before_date/{before_date}/json/page-{page}.json"), "w") as new_cache:
+                new_cache.write(json.dumps(result))
+        
+        except:
+            print("Error when writing cache!")
+
+        return result
+
+def get_cached_news_metadata_after_date(page: int = 1, after_date: str = "2025-09", path: str = ".") -> Any:
+    """
+    This function is to fetch news metadata before the `after_date` with caching
+    
+    :param:
+        page (int): the page of the news article you want to scrape
+
+        after_date (str): The articles you want to get before `after_date`
+
+        path (str): Your path location
+    """
+
+    if not api_token:
+        raise RuntimeError("API key not found")
+
+    valid_date_pattern = r"^[0-9]{4}\-(0[1-9]|1[0-2])$"
+    match = re.search(valid_date_pattern, after_date)
+
+    if not match:
+        raise ValueError("Date must be of format Y-m")
+    
+    try:
+        with open(os.path.join(path, f"news_cache/after_date/{after_date}/json/page-{page}.json"), "r") as cache:
+            content =  cache.read()
+            return json.loads(content)
+        
+    except:
+        res: requests.Response = requests.get(
+            "https://api.marketaux.com/v1/news/all",
+            params={
+                "api_token": api_token,
+                "published_before": after_date,
+                "page": page,
+                "sentiment_lte": 1,
+                "language": "en"
+            }
+        )
+
+        result = res.json()
+
+        if res.status_code != 200:
+            raise ConnectionRefusedError("Return status not OK")
+
+        # Make sure the directory exists
+        os.makedirs(os.path.join(path, f"news_cache/after_date/{after_date}/json/"), exist_ok = True)
+
+        try:
+            with open(os.path.join(path, f"news_cache/after_date/{after_date}/json/page-{page}.json"), "w") as new_cache:
                 new_cache.write(json.dumps(result))
         
         except:
@@ -87,4 +142,4 @@ def extract_text_from_url(url: str, scraper: cloudscraper.CloudScraper = scraper
         raise Exception(f"Failed to extract from: {url}\n Error:{e}")
 
 if __name__ == "__main__":
-    print(get_cached_news_metadata(page=2))
+    print(get_cached_news_metadata_before_date(page=2))
