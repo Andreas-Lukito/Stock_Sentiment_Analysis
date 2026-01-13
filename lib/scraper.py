@@ -98,7 +98,7 @@ def get_cached_news_metadata_after_date(page: int = 1, after_date: str = "2025-0
             "https://api.marketaux.com/v1/news/all",
             params={
                 "api_token": api_token,
-                "published_before": after_date,
+                "published_after": after_date,
                 "page": page,
                 "sentiment_lte": 1,
                 "language": "en"
