@@ -89,6 +89,7 @@ def get_cached_news_metadata_after_date(page: int = 1, after_date: str = "2025-0
         raise ValueError("Date must be of format Y-m")
     
     try:
+        print(f"Reading cache at: {os.path.join(path, f'news_cache/after_date/{after_date}/json/page-{page}.json')}") # debug purposes
         with open(os.path.join(path, f"news_cache/after_date/{after_date}/json/page-{page}.json"), "r") as cache:
             content =  cache.read()
             return json.loads(content)
@@ -108,14 +109,16 @@ def get_cached_news_metadata_after_date(page: int = 1, after_date: str = "2025-0
         result = res.json()
 
         if res.status_code != 200:
-            raise ConnectionRefusedError("Return status not OK")
+            raise ConnectionRefusedError(f"Return status not OK with code {res.status_code}")
 
         # Make sure the directory exists
         os.makedirs(os.path.join(path, f"news_cache/after_date/{after_date}/json/"), exist_ok = True)
 
         try:
             with open(os.path.join(path, f"news_cache/after_date/{after_date}/json/page-{page}.json"), "w") as new_cache:
+                print(f"wrote cache at: {os.path.join(path, f'news_cache/after_date/{after_date}/json/page-{page}.json')}") # debug purposes
                 new_cache.write(json.dumps(result))
+                
         
         except:
             print("Error when writing cache!")
