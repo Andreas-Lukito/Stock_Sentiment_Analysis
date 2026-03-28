@@ -45,7 +45,15 @@ def get_cached_news_metadata_before_date(page: int = 1, before_date: str = "2025
                 "api_token": api_token,
                 "published_before": before_date,
                 "page": page,
-                "sentiment_lte": 1,
+                # Scraper to get neutral scores
+                "sentiment_lte": 0,
+                "sentiment_gte": 0,
+
+                # Scraper to get negative scores
+                # "sentiment_lte": -0.5,
+
+                # Scraper to get positive scores
+                # "sentiment_gte": 0.5,
                 "language": "en"
             }
         )
@@ -101,7 +109,15 @@ def get_cached_news_metadata_after_date(page: int = 1, after_date: str = "2025-0
                 "api_token": api_token,
                 "published_after": after_date,
                 "page": page,
-                "sentiment_lte": -0.5,
+                # Scraper to get neutral scores
+                "sentiment_lte": 0,
+                "sentiment_gte": 0,
+
+                # Scraper to get negative scores
+                # "sentiment_lte": -0.5,
+
+                # Scraper to get positive scores
+                # "sentiment_gte": 0.5,
                 "language": "en"
             }
         )
