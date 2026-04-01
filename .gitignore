@@ -3,7 +3,9 @@
 /.venv/
 /.vscode/
 .env
-/news_cache/*
+/news_cache/
 api_tokens.txt
 /models/
 *.pdf
+/notebooks/wandb/
+/model_checkpoints/
