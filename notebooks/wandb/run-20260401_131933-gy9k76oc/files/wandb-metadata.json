@@ -1,0 +1,44 @@
+{
+  "os": "Linux-6.18.16-200.fc43.x86_64-x86_64-with-glibc2.42",
+  "python": "CPython 3.11.14",
+  "startedAt": "2026-04-01T06:19:33.041068Z",
+  "program": "/run/media/horizontal_roterien_katze/A/Documents/binus/Sem5/LEC_Text_Mining/1_Final_Project/Stock_Sentiment_Analysis/notebooks/04_FinBERT_categorical.ipynb",
+  "codePath": "/run/media/horizontal_roterien_katze/A/Documents/binus/Sem5/LEC_Text_Mining/1_Final_Project/Stock_Sentiment_Analysis/notebooks/04_FinBERT_categorical.ipynb",
+  "codePathLocal": "04_FinBERT_categorical.ipynb",
+  "git": {
+    "remote": "https://github.com/Andreas-Lukito/Stock_Sentiment_Analysis.git",
+    "commit": "b59282e70f08b1e840b8cd5fb5ebcc8eb6981c67"
+  },
+  "email": "andreas.lukito001@binus.ac.id",
+  "root": "/run/media/horizontal_roterien_katze/A/Documents/binus/Sem5/LEC_Text_Mining/1_Final_Project/Stock_Sentiment_Analysis/notebooks",
+  "host": "fedora",
+  "executable": "/home/horizontal_roterien_katze/miniforge3/envs/thesis/bin/python",
+  "cpu_count": 10,
+  "cpu_count_logical": 20,
+  "gpu": "N/A",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "480685064192",
+      "used": "253117517824"
+    }
+  },
+  "memory": {
+    "total": "24246112256"
+  },
+  "gpu_amd": [
+    {
+      "id": "0",
+      "uniqueId": "0x0",
+      "vbiosVersion": "113-STRIXEMU-001",
+      "performanceLevel": "auto",
+      "series": "N/A",
+      "model": "0x150e",
+      "vendor": "Advanced Micro Devices, Inc. [AMD/ATI]",
+      "sku": "STRIXEMU",
+      "sclkRange": "600Mhz - 2900Mhz",
+      "mclkRange": "0Mhz - 0Mhz"
+    }
+  ],
+  "writerId": "annx8tqjjnnajvllc43klvvpt6m19fu7"
+}
