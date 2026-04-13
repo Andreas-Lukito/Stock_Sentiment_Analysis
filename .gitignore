@@ -9,3 +9,4 @@ api_tokens.txt
 *.pdf
 /notebooks/wandb/
 /model_checkpoints/
+AGENTS.md
