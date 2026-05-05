@@ -1,14 +1,20 @@
-from genericpath import exists
 from dotenv import load_dotenv
 import json
 import os
 import re
 import requests
+import threading
 from typing import Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from newspaper import Article
 import cloudscraper
 import random
 import time
+import pandas as pd
+from tqdm import tqdm
+from IPython.display import clear_output
+import threading
+_local = threading.local()
 
 load_dotenv()
 
@@ -144,14 +150,6 @@ def get_cached_news_metadata_after_date(page: int = 1, after_date: str = "2025-0
         return result
 
 # Create scraper with better browser emulation
-scraper = cloudscraper.create_scraper(
-    browser={
-        "browser": "chrome",
-        "platform": "windows",
-        "mobile": False
-    }
-)
-
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -189,6 +187,14 @@ def get_realistic_headers(url: str, user_agent: str) -> dict:
         "Referer": origin,              # looks like you navigated from the same site
     }
 
+def get_scraper():
+    """One cloudscraper instance per thread."""
+    if not hasattr(_local, "scraper"):
+        _local.scraper = cloudscraper.create_scraper(
+            browser={"browser": "chrome", "platform": "windows", "mobile": False}
+        )
+    return _local.scraper
+
 def human_delay(min_s: float = 2.0, max_s: float = 6.0):
     """Sleep for a random duration with a slight gaussian skew."""
     base = random.uniform(min_s, max_s)
@@ -207,6 +213,7 @@ def extract_text_from_url(url: str, timeout: int = 30, retries: int = 3) -> str:
     try:
         from urllib.parse import urlparse
         homepage = f"{urlparse(url).scheme}://{urlparse(url).netloc}"
+        scraper = get_scraper()
         scraper.get(homepage, headers=headers, timeout=timeout)
         human_delay(1.5, 3.5)   # pause between homepage → article
     except Exception:
@@ -217,6 +224,7 @@ def extract_text_from_url(url: str, timeout: int = 30, retries: int = 3) -> str:
         try:
             human_delay()   # delay before every attempt
 
+            scraper = get_scraper()
             response = scraper.get(url, headers=headers, timeout=timeout)
 
             if response.status_code == 403:
@@ -246,6 +254,98 @@ def extract_text_from_url(url: str, timeout: int = 30, retries: int = 3) -> str:
                 time.sleep(backoff)
 
     raise Exception(f"All {retries} attempts failed for: {url}\nLast error: {last_error}")
+
+def safe_extract_row(row) -> str:
+    """
+    Wraps extract_text_from_url for a full dataframe row.
+    Falls back to title+description+snippet if URL is missing or scraping fails.
+    """
+    url = row["url"]
+    fallback = f"{row['title']} {row['description']} {row['snippet']}"
+
+    # --- invalid URL: skip scraping entirely ---
+    if pd.isna(url) or not isinstance(url, str) or url.strip() == "":
+        tqdm.write(f"Invalid URL, using fallback | {url}")
+        return fallback
+
+    # --- try scraping ---
+    try:
+        text = extract_text_from_url(url)
+
+        if not text or text.strip() == "":
+            raise ValueError("Empty scraped text")
+
+        tqdm.write(f"✓ {url}")
+        return text
+
+    except Exception as e:
+        tqdm.write(f"Failed ({e}), using fallback | {url}")
+        return fallback
+
+def scrape_dataframe(
+    df: pd.DataFrame,
+    url_col: str = "url",
+    text_col: str = "text",
+    max_workers: int = 5,
+    batch_size: int = 200,
+    output_path: str = "news_scraped.csv",
+) -> pd.DataFrame:
+
+    # --- resume from checkpoint if available ---
+    if os.path.exists(output_path):
+        print(f"Resuming from checkpoint: {output_path}")
+        checkpoint_df = pd.read_csv(output_path)
+        scraped_uuids = set(checkpoint_df["uuid"].tolist())
+        remaining = df[~df["uuid"].isin(scraped_uuids)].copy()
+        print(f"  {len(scraped_uuids)} done, {len(remaining)} remaining")
+    else:
+        checkpoint_df = pd.DataFrame()
+        remaining = df.copy()
+
+    if remaining.empty:
+        print("All rows already scraped!")
+        # reconstruct full df from checkpoint preserving original column order
+        return checkpoint_df[df.columns]
+
+    rows = [row for _, row in remaining.iterrows()]
+    total_batches = (len(rows) + batch_size - 1) // batch_size
+    print(f"Scraping {len(rows)} rows across {total_batches} batches...")
+``
+    for batch_num, start in enumerate(range(0, len(rows), batch_size), 1):
+        clear_output(wait=True)
+        batch_rows = rows[start : start + batch_size]
+        print(f"\nBatch {batch_num}/{total_batches} ({len(batch_rows)} rows)")
+
+        batch_results = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_row = {
+                executor.submit(safe_extract_row, row): row
+                for row in batch_rows
+            }
+            for future in tqdm(
+                as_completed(future_to_row),
+                total=len(batch_rows),
+                desc=f"Batch {batch_num}"
+            ):
+                row = future_to_row[future]
+                batch_results[row["uuid"]] = future.result()
+
+        # map results back
+        batch_df = pd.DataFrame(batch_rows)
+        batch_df[text_col] = batch_df["uuid"].map(batch_results)
+
+        # append batch to checkpoint and save
+        checkpoint_df = pd.concat([checkpoint_df, batch_df], ignore_index=True)
+        checkpoint_df.to_csv(output_path, index=False)
+
+        n_scraped = sum(
+            1 for r in batch_rows
+            if batch_results.get(r["uuid"], "") != f"{r['title']} {r['description']} {r['snippet']}"
+        )
+        n_fallback = len(batch_rows) - n_scraped
+        print(f"  ✓ {n_scraped} scraped, ↩ {n_fallback} fallback — saved to {output_path}")
+
+    return checkpoint_df[df.columns]
 
 if __name__ == "__main__":
     print(get_cached_news_metadata_before_date(page=2))
