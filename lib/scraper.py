@@ -310,7 +310,7 @@ def scrape_dataframe(
     rows = [row for _, row in remaining.iterrows()]
     total_batches = (len(rows) + batch_size - 1) // batch_size
     print(f"Scraping {len(rows)} rows across {total_batches} batches...")
-``
+
     for batch_num, start in enumerate(range(0, len(rows), batch_size), 1):
         clear_output(wait=True)
         batch_rows = rows[start : start + batch_size]
